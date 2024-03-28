@@ -168,159 +168,167 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
-  return (
-    <div className="h-screen">
-      <nav className="py-3 shadow shadow-[rgba(255,255,255,.1)]">
-        <div className="flex items-center justify-between container">
-          <h1 className=" madimi-one-regular text-3xl">PYDE</h1>
-          <w3m-button />
-        </div>
-      </nav>
-      {loading ? (
-        <h1>loading</h1>
-      ) : userENS ? (
-        <div className="max-w-3xl mx-auto flex mt-7">
-          <div className="w-1/4 h-[82vh] overflow-y-auto bg-gray-100 shadow-md rounded p-4 mr-4">
-            <h2 className="text-lg font-bold mb-4">Friends</h2>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const result = await controller.searchENS(
-                  ref.current?.value.trim() ?? ""
-                );
-                if (result) {
-                  setSearch(result);
-                }
-              }}
-            >
-              <input
-                ref={ref}
-                type="text"
-                placeholder="search..."
-                className="w-full border px-2 py-1 rounded"
-                required
-              />
-            </form>
-            <ul className="space-y-3 mt-5">
-              {search ? (
-                <li
-                  onClick={() => setSelectedChat(search)}
-                  className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
-                >
-                  <img
-                    src={search.avatar}
-                    className="w-8 h-8 rounded-full"
-                    alt=""
-                  />
-                  <p>{search.name}</p>
-                </li>
-              ) : null}
-              {myChats.map((chat) => (
-                <li
-                  onClick={() => setSelectedChat(chat)}
-                  className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
-                >
-                  <img
-                    src={chat.avatar}
-                    className="w-8 h-8 rounded-full"
-                    alt=""
-                  />
-                  <p>{chat.name}</p>
-                </li>
-              ))}
-            </ul>
+  if (isConnected) {
+    return (
+      <div className="h-screen">
+        <nav className="py-3 shadow shadow-[rgba(255,255,255,.1)]">
+          <div className="flex items-center justify-between container">
+            <h1 className=" madimi-one-regular text-3xl">PYDE</h1>
+            <w3m-button />
           </div>
-          <div className="w-3/4 bg-gray-100 h-[82vh] shadow-md rounded p-4">
-            {selectedChat ? (
-              <div className="">
-                <div className="flex items-center mb-4 gap-3">
-                  <img
-                    src={selectedChat.avatar}
-                    className="h-10 w-10 rounded-full"
-                    alt=""
-                  />
-                  <h2 className="text-lg font-bold">{selectedChat.name}</h2>
-                </div>
-                <div
-                  ref={messagesEndRef}
-                  className="mb-4  h-[60vh] overflow-y-auto"
-                >
-                  {messages.map((message, index) => (
-                    <ChatMessage
-                      key={index}
-                      message={message.message}
-                      from={message.from}
-                      to={message.to}
-                      userProfile={message.userProfile}
+        </nav>
+        {loading ? (
+          <h1>loading</h1>
+        ) : userENS ? (
+          <div className="max-w-3xl mx-auto flex mt-7">
+            <div className="w-1/4 h-[82vh] overflow-y-auto bg-gray-100 shadow-md rounded p-4 mr-4">
+              <h2 className="text-lg font-bold mb-4">Friends</h2>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const result = await controller.searchENS(
+                    ref.current?.value.trim() ?? ""
+                  );
+                  if (result) {
+                    setSearch(result);
+                  }
+                }}
+              >
+                <input
+                  ref={ref}
+                  type="text"
+                  placeholder="search..."
+                  className="w-full border px-2 py-1 rounded"
+                  required
+                />
+              </form>
+              <ul className="space-y-3 mt-5">
+                {search ? (
+                  <li
+                    onClick={() => setSelectedChat(search)}
+                    className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
+                  >
+                    <img
+                      src={search.avatar}
+                      className="w-8 h-8 rounded-full"
+                      alt=""
                     />
-                  ))}
+                    <p>{search.name}</p>
+                  </li>
+                ) : null}
+                {myChats.map((chat) => (
+                  <li
+                    onClick={() => setSelectedChat(chat)}
+                    className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
+                  >
+                    <img
+                      src={chat.avatar}
+                      className="w-8 h-8 rounded-full"
+                      alt=""
+                    />
+                    <p>{chat.name}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="w-3/4 bg-gray-100 h-[82vh] shadow-md rounded p-4">
+              {selectedChat ? (
+                <div className="">
+                  <div className="flex items-center mb-4 gap-3">
+                    <img
+                      src={selectedChat.avatar}
+                      className="h-10 w-10 rounded-full"
+                      alt=""
+                    />
+                    <h2 className="text-lg font-bold">{selectedChat.name}</h2>
+                  </div>
+                  <div
+                    ref={messagesEndRef}
+                    className="mb-4  h-[60vh] overflow-y-auto"
+                  >
+                    {messages.map((message, index) => (
+                      <ChatMessage
+                        key={index}
+                        message={message.message}
+                        from={message.from}
+                        to={message.to}
+                        userProfile={message.userProfile}
+                      />
+                    ))}
+                  </div>
+                  <ChatInput addMessage={addMessage} />
                 </div>
-                <ChatInput addMessage={addMessage} />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                PYDE Chat
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className=" h-[80vh] w-full flex items-center justify-center ">
-          <div className="w-1/2 bg-white shadow p-5">
-            <h1 className="text-xl font-[600]">Register ENS</h1>
-            <div className="flex mt-10 items-center justify-center">
-              {/* <form></form> */}
-              {fileImg ? (
-                <label
-                  htmlFor="file"
-                  className="h-32 cursor-pointer w-32 bg-gray-300 rounded-full"
-                >
-                  <img
-                    src={URL.createObjectURL(fileImg)}
-                    className="w-full h-full rounded-full"
-                    alt=""
-                  />
-                </label>
               ) : (
-                <label
-                  htmlFor="file"
-                  className="h-32 cursor-pointer w-32 bg-gray-300 rounded-full"
-                ></label>
+                <div className="flex items-center justify-center h-full">
+                  PYDE Chat
+                </div>
               )}
             </div>
-            <input
-              ref={ensRef}
-              type="text"
-              placeholder="Name..."
-              className="outline-none border-[1px] p-3 rounded-lg mt-10 w-full"
-              name=""
-              id=""
-            />
-            <button
-              disabled={registering}
-              onClick={sendFileToIPFS}
-              className="bg-blue-400 w-full p-3 text-white mt-10 rounded"
-            >
-              {registering ? "Loading..." : "Register"}
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  setFileImg(e.target.files[0]);
-                }
-                console.log("sdfs");
-              }}
-              className="w-0 h-0"
-              name=""
-              id="file"
-            />
           </div>
-        </div>
-      )}
-    </div>
-  );
+        ) : (
+          <div className=" h-[80vh] w-full flex items-center justify-center ">
+            <div className="w-1/2 bg-white shadow p-5">
+              <h1 className="text-xl font-[600]">Register ENS</h1>
+              <div className="flex mt-10 items-center justify-center">
+                {/* <form></form> */}
+                {fileImg ? (
+                  <label
+                    htmlFor="file"
+                    className="h-32 cursor-pointer w-32 bg-gray-300 rounded-full"
+                  >
+                    <img
+                      src={URL.createObjectURL(fileImg)}
+                      className="w-full h-full rounded-full"
+                      alt=""
+                    />
+                  </label>
+                ) : (
+                  <label
+                    htmlFor="file"
+                    className="h-32 cursor-pointer w-32 bg-gray-300 rounded-full"
+                  ></label>
+                )}
+              </div>
+              <input
+                ref={ensRef}
+                type="text"
+                placeholder="Name..."
+                className="outline-none border-[1px] p-3 rounded-lg mt-10 w-full"
+                name=""
+                id=""
+              />
+              <button
+                disabled={registering}
+                onClick={sendFileToIPFS}
+                className="bg-blue-400 w-full p-3 text-white mt-10 rounded"
+              >
+                {registering ? "Loading..." : "Register"}
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    setFileImg(e.target.files[0]);
+                  }
+                  console.log("sdfs");
+                }}
+                className="w-0 h-0"
+                name=""
+                id="file"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  } else {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <w3m-button />
+      </div>
+    );
+  }
 };
 
 export default App;
