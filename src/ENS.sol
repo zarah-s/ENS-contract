@@ -6,6 +6,7 @@ contract ENS {
     struct Info {
         string avatar;
         string name;
+        address address_;
     }
     mapping(address => Info) addressToInfo;
     mapping(string => address) nameToAddress;
@@ -16,16 +17,19 @@ contract ENS {
         Info storage _newInfo = addressToInfo[msg.sender];
         _newInfo.avatar = avatar;
         _newInfo.name = name;
+        _newInfo.address_ = msg.sender;
         emit Registered(msg.sender, name);
     }
 
-    function getInfo(address _address) external view returns (Info memory) {
+    function getInfoFromAddress(
+        address _address
+    ) external view returns (Info memory) {
         return addressToInfo[_address];
     }
 
-    function getEnsAddress(
+    function getInfoFromName(
         string calldata _name
-    ) external view returns (address) {
-        return nameToAddress[_name];
+    ) external view returns (Info memory) {
+        return addressToInfo[nameToAddress[_name]];
     }
 }

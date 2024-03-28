@@ -6,13 +6,16 @@ interface IENS {
         string avatar;
         string name;
         bool valid;
+        address address_;
     }
 
     function register(string calldata avatar, string calldata name) external;
 
-    function getInfo(address _address) external view returns (Info memory);
+    function getInfoFromAddress(
+        address _address
+    ) external view returns (Info memory);
 
-    function getEnsAddress(
+    function getInfoFromName(
         string calldata _name
     ) external view returns (address);
 }

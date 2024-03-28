@@ -5,53 +5,37 @@ import "./interfaces/IENS.sol";
 contract Chat {
     IENS ens;
 
-    struct Profile {
-        string avatar;
-        string name;
-    }
+    mapping(address => uint) public msgCount;
 
     struct Message {
         address from;
         address to;
         string message;
-        uint timestamp;
-        Profile userProfile;
     }
 
-    mapping(address => Message[]) messages;
+    Message[] messages;
 
     constructor(address _ensAddress) {
         ens = IENS(_ensAddress);
     }
 
     function sendMessage(string calldata _msg, address _to) external {
-        IENS.Info memory receipient = ens.getInfo(_to);
-        IENS.Info memory sender = ens.getInfo(msg.sender);
-        messages[_to].push(
-            Message({
-                from: msg.sender,
-                to: _to,
-                message: _msg,
-                timestamp: block.timestamp,
-                userProfile: Profile({
-                    name: receipient.name,
-                    avatar: receipient.avatar
-                })
-            })
-        );
-
-        messages[msg.sender].push(
-            Message({
-                from: msg.sender,
-                to: _to,
-                message: _msg,
-                timestamp: block.timestamp,
-                userProfile: Profile({name: sender.name, avatar: sender.avatar})
-            })
-        );
+        msgCount[msg.sender] += 1;
+        msgCount[_to] += 1;
+        messages.push(Message({from: msg.sender, to: _to, message: _msg}));
     }
 
     function getUserMessages() external view returns (Message[] memory) {
-        return messages[msg.sender];
+        Message[] memory l = new Message[](msgCount[msg.sender]);
+        uint _count = 0;
+        for (uint i = 0; i < messages.length; i++) {
+            if (
+                messages[i].from == msg.sender || messages[i].to == msg.sender
+            ) {
+                l[_count] = messages[i];
+                _count++;
+            }
+        }
+        return l;
     }
 }
