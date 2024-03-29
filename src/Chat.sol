@@ -4,7 +4,7 @@ import "./interfaces/IENS.sol";
 
 contract Chat {
     IENS ens;
-
+    address immutable relayer;
     mapping(address => uint) public msgCount;
 
     struct Message {
@@ -15,14 +15,20 @@ contract Chat {
 
     Message[] messages;
 
-    constructor(address _ensAddress) {
+    constructor(address _ensAddress, address _relayer) {
         ens = IENS(_ensAddress);
+        relayer = _relayer;
     }
 
-    function sendMessage(string calldata _msg, address _to) external {
-        msgCount[msg.sender] += 1;
+    function sendMessage(
+        address _from,
+        address _to,
+        string calldata _msg
+    ) external {
+        require(msg.sender == relayer, "THREAT_DETECTED");
+        msgCount[_from] += 1;
         msgCount[_to] += 1;
-        messages.push(Message({from: msg.sender, to: _to, message: _msg}));
+        messages.push(Message({from: _from, to: _to, message: _msg}));
     }
 
     function getUserMessages() external view returns (Message[] memory) {

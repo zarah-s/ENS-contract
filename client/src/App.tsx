@@ -10,6 +10,8 @@ import {
 import useGetMessages from "./hooks/useGetMessages";
 import { Controller } from "./controllers/Controller";
 import useGetENS from "./hooks/useGetENS";
+import { ethers } from "ethers";
+import { toast } from "react-toastify";
 
 const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -18,7 +20,11 @@ const App = () => {
   const { isConnected, chainId, address } = useWeb3ModalAccount();
   const ref = useRef<HTMLInputElement>(null);
   const [valid, setValid] = useState(false);
-  const [loading, userENS] = useGetENS(walletProvider, isConnected, valid);
+  const { loading, details: userENS } = useGetENS(
+    walletProvider,
+    isConnected,
+    valid
+  );
 
   const { globalMessages, chats } = useGetMessages(
     walletProvider,
@@ -26,23 +32,15 @@ const App = () => {
     userENS !== null
   );
   const controller = new Controller(chainId, walletProvider);
-
   function extractMessages() {
-    // let msgs:Message[] = [];
     if (selectedChat) {
       const msgs = globalMessages.filter(
         (ft) =>
           ft.from.toString() === selectedChat.address_.toString() ||
           ft.to.toString() === selectedChat.address_.toString()
       );
-      console.log(msgs);
       setMessages(msgs);
     }
-    // for (let i = 0; i < globalMessages.length; i++) {
-    //   const element = globalMessages[i];
-    //   if(element.from )
-
-    // }
   }
 
   function extractChats() {
@@ -76,7 +74,7 @@ const App = () => {
 
   const [search, setSearch] = useState<ENSInfo | null>(null);
 
-  const addMessage = (text: string) => {
+  const addMessage = async (text: string) => {
     const newMessage: Message = {
       from: address?.toString() ?? "",
       to: selectedChat?.address_ ?? "",
@@ -84,7 +82,37 @@ const App = () => {
       userProfile: selectedChat!,
     };
     setMessages([...messages, newMessage]);
-    controller.sendMessage(text, selectedChat?.address_.toString() ?? "");
+    const transaction = {
+      from: address?.toString(),
+      to: selectedChat?.address_.toString(),
+      message: text,
+    };
+    const toastId = toast.loading("Processing");
+
+    const provider = new ethers.BrowserProvider(walletProvider!);
+    try {
+      const signer = await provider.getSigner();
+      const signature = await signer.signMessage(JSON.stringify(transaction));
+      const response = await fetch("http://localhost:5000/send-message", {
+        method: "POST",
+        body: JSON.stringify({ ...transaction, signature }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const jsonResponse = await response.json();
+
+      if (jsonResponse.success) {
+        toast.success(jsonResponse.message);
+      } else {
+        toast.error(jsonResponse.message);
+      }
+      toast.dismiss(toastId);
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("OOPS!! SOMETHING_WENT_WRONG");
+    }
   };
   const [registering, setRegistering] = useState<boolean>(false);
   const ensRef = useRef<HTMLInputElement>(null);
@@ -124,7 +152,7 @@ const App = () => {
           },
         });
 
-        const ImgHash = `https://gateway.pinata.cloud/ipfs/${resFile.data.IpfsHash}`;
+        const ImgHash = resFile.data.IpfsHash;
         const tx = await controller.registerENS(
           ImgHash,
           ensRef.current.value.trim()
@@ -132,14 +160,11 @@ const App = () => {
 
         if (tx) {
           setCachedImgHash(null);
-          setValid(true);
+          setValid(!setValid);
         } else {
           setCachedImgHash(ImgHash);
         }
         setRegistering(false);
-
-        // console.log(ImgHash);
-        //Take a look at your Pinata Pinned section, you will see a new file added to you list.
       } catch (error) {
         console.log("Error sending File to IPFS: ");
         console.log(error);
@@ -154,6 +179,17 @@ const App = () => {
       messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
     }
   };
+
+  function processURL(hash: string): string {
+    // return hash;
+    return `https://gateway.pinata.cloud/ipfs/${hash}`;
+  }
+
+  useEffect(() => {
+    setMyChats([]);
+    setSearch(null);
+    setMessages([]);
+  }, [address]);
 
   useEffect(() => {
     setMessages([]);
@@ -173,16 +209,50 @@ const App = () => {
       <div className="h-screen">
         <nav className="py-3 shadow shadow-[rgba(255,255,255,.1)]">
           <div className="flex items-center justify-between container">
-            <h1 className=" madimi-one-regular text-3xl">PYDE</h1>
+            {userENS ? (
+              <div className="flex items-center gap-3">
+                <img
+                  src={processURL(userENS?.avatar ?? "")}
+                  className="w-8 h-8 rounded-full"
+                  alt=""
+                />
+                <h1 className=" madimi-one-regular text-2xl">
+                  {userENS?.name}
+                </h1>
+              </div>
+            ) : (
+              <h1 className=" madimi-one-regular text-3xl">PYDE</h1>
+            )}
             <w3m-button />
           </div>
         </nav>
         {loading ? (
-          <h1>loading</h1>
+          <div className="flex items-center justify-center w-full h-screen">
+            <div role="status">
+              <svg
+                aria-hidden="true"
+                className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                viewBox="0 0 100 101"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentFill"
+                />
+              </svg>
+              <span className="sr-only">Loading...</span>
+            </div>
+          </div>
         ) : userENS ? (
           <div className="max-w-3xl mx-auto flex mt-7">
             <div className="w-1/4 h-[82vh] overflow-y-auto bg-gray-100 shadow-md rounded p-4 mr-4">
-              <h2 className="text-lg font-bold mb-4">Friends</h2>
+              <h2 className="text-lg font-bold mb-4">CHATS</h2>
+
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
@@ -209,20 +279,21 @@ const App = () => {
                     className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
                   >
                     <img
-                      src={search.avatar}
+                      src={processURL(search.avatar)}
                       className="w-8 h-8 rounded-full"
                       alt=""
                     />
                     <p>{search.name}</p>
                   </li>
                 ) : null}
-                {myChats.map((chat) => (
+                {myChats.map((chat, index) => (
                   <li
+                    key={index}
                     onClick={() => setSelectedChat(chat)}
                     className="py-1 border-b-[1px] pb-2 flex items-center gap-2"
                   >
                     <img
-                      src={chat.avatar}
+                      src={processURL(chat.avatar)}
                       className="w-8 h-8 rounded-full"
                       alt=""
                     />
@@ -236,7 +307,7 @@ const App = () => {
                 <div className="">
                   <div className="flex items-center mb-4 gap-3">
                     <img
-                      src={selectedChat.avatar}
+                      src={processURL(selectedChat.avatar)}
                       className="h-10 w-10 rounded-full"
                       alt=""
                     />

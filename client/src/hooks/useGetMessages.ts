@@ -10,17 +10,22 @@ const useGetMessages = (provider: Eip1193Provider | undefined, isConnected: bool
     const [globalMessages, setMessages] = useState<Message[]>([]);
     const [chats, setChats] = useState<ENSInfo[]>([])
     const { address } = useWeb3ModalAccount();
+
     useEffect(() => {
         (async () => {
+
             const itf = new ethers.Interface(ENSAbi);
             if (!isConnected) return;
-            if (pass) return;
+
             if (!address) return;
             const readWriteProvider = getProvider(provider!);
             const signer = await readWriteProvider.getSigner();
+            // await signer.signMessage("sendMessage")
             const contract = getChatContract(signer);
-
+            // setMessages([])
+            // setChats([])
             try {
+                // alert("sdf")
                 const result = await contract.getUserMessages();
                 let calls = [];
                 let nonZero = [];

@@ -12,6 +12,7 @@ const useGetENS = (provider: Eip1193Provider | undefined, isConnected: boolean, 
         (async () => {
             // const itf = new ethers.Interface(ChatAbi);
             if (!isConnected) return;
+            // setDetails(null)
             const readWriteProvider = getProvider(provider!);
             const signer = await readWriteProvider.getSigner();
             const contract = getENSContract(signer);
@@ -22,7 +23,6 @@ const useGetENS = (provider: Eip1193Provider | undefined, isConnected: boolean, 
                 if (result.name) {
                     setDetails(result);
                 }
-                // console.log(result)
                 setLoading(false);
 
             } catch (error) {
@@ -31,7 +31,7 @@ const useGetENS = (provider: Eip1193Provider | undefined, isConnected: boolean, 
         })()
     }, [isConnected, address, valid])
 
-    return [loading, details];
+    return { loading, details };
 }
 
 export default useGetENS;

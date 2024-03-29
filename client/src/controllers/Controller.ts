@@ -77,6 +77,7 @@ export class Controller {
             console.log("receipt: ", receipt);
 
             toast.dismiss(toastId)
+
             if (receipt.status) {
                 toast.success("registration successful", { autoClose: 5000 })
                 this.loading = false;

@@ -12,14 +12,14 @@ contract ChatTest is Test {
 
     function setUp() public {
         ens = new ENS();
-        chat = new Chat(address(ens));
         A = mkaddr("address a");
         B = mkaddr("address b");
+        chat = new Chat(address(ens), A);
     }
 
     function testStateChage() public {
         switchSigner(A);
-        chat.sendMessage("Hey man", B);
+        chat.sendMessage(A, B, "Hey man");
         Chat.Message[] memory _messages = chat.getUserMessages();
         assertEq(_messages.length, 1);
         assertEq(_messages[0].message, "Hey man");
