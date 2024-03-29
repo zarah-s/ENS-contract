@@ -89,13 +89,16 @@ const App = () => {
     try {
       const signer = await provider.getSigner();
       const signature = await signer.signMessage(JSON.stringify(transaction));
-      const response = await fetch("http://localhost:5000/send-message", {
-        method: "POST",
-        body: JSON.stringify({ ...transaction, signature }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        "https://ens-contract.onrender.com/send-message",
+        {
+          method: "POST",
+          body: JSON.stringify({ ...transaction, signature }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const jsonResponse = await response.json();
 
@@ -208,7 +211,9 @@ const App = () => {
             {userENS ? (
               <div className="flex items-center gap-3">
                 <img
-                  src={processURL(userENS?.avatar ?? "")}
+                  src={
+                    "https://gateway.pinata.cloud/ipfs/QmWPuhPehstfHeNcGwKAU8bmMt59684YnpGDoUcNFyQLLm"
+                  }
                   className="w-8 h-8 rounded-full"
                   alt=""
                 />
