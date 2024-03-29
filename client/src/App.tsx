@@ -211,9 +211,7 @@ const App = () => {
             {userENS ? (
               <div className="flex items-center gap-3">
                 <img
-                  src={
-                    "https://gateway.pinata.cloud/ipfs/QmWPuhPehstfHeNcGwKAU8bmMt59684YnpGDoUcNFyQLLm"
-                  }
+                  src={processURL(userENS?.avatar ?? "")}
                   className="w-8 h-8 rounded-full"
                   alt=""
                 />
