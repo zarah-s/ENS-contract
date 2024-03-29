@@ -6,7 +6,7 @@ import multicallAbi from "../constants/multicall.json"
 import ENSAbi from "../constants/ENSAbi.json";
 import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { ENSInfo, Message } from "../interfaces";
-const useGetMessages = (provider: Eip1193Provider | undefined, isConnected: boolean, pass: boolean) => {
+const useGetMessages = (provider: Eip1193Provider | undefined, isConnected: boolean) => {
     const [globalMessages, setMessages] = useState<Message[]>([]);
     const [chats, setChats] = useState<ENSInfo[]>([])
     const { address } = useWeb3ModalAccount();

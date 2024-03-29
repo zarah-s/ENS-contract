@@ -26,11 +26,7 @@ const App = () => {
     valid
   );
 
-  const { globalMessages, chats } = useGetMessages(
-    walletProvider,
-    isConnected,
-    userENS !== null
-  );
+  const { globalMessages, chats } = useGetMessages(walletProvider, isConnected);
   const controller = new Controller(chainId, walletProvider);
   function extractMessages() {
     if (selectedChat) {
